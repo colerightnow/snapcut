@@ -15,21 +15,35 @@ class Segment:
 
 
 @dataclass
+class SyncedAudio:
+    path: Path
+    duration: float
+    offset: float  # seconds — positive: lav starts after video; negative: before
+
+
+@dataclass
 class MediaFile:
     path: Path
     duration: float
     width: int = 1920
     height: int = 1080
-    frame_rate: float = 29.97
+    frame_rate: float = 23.976
     audio_segments: list[Segment] = field(default_factory=list)   # librosa
     speech_segments: list[Segment] = field(default_factory=list)  # Whisper
+    scored_segments: list[Segment] = field(default_factory=list)  # GPT-4
+    synced_audio: list[SyncedAudio] = field(default_factory=list) # lav mics
 
     @property
     def select_segments(self) -> list[Segment]:
-        """Non-silent regions from librosa; falls back to full clip."""
-        return self.audio_segments or [Segment(0.0, self.duration)]
+        """GPT-4 scored moments → Selects. Falls back to speech → audio → full clip."""
+        return (
+            self.scored_segments
+            or self.speech_segments
+            or self.audio_segments
+            or [Segment(0.0, self.duration)]
+        )
 
     @property
     def edit_segments(self) -> list[Segment]:
-        """Speech regions from Whisper; falls back to audio_segments."""
-        return self.speech_segments or self.audio_segments or [Segment(0.0, self.duration)]
+        """Non-silent regions → Edit. Falls back to full clip."""
+        return self.audio_segments or [Segment(0.0, self.duration)]
