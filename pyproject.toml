@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "snapcut"
+version = "0.1.0"
+description = "Footage folder → FCPXML sequences via FFmpeg + Whisper + librosa"
+requires-python = ">=3.11"
+dependencies = [
+    "click>=8.1",
+    "openai>=1.0",
+    "librosa>=0.10",
+    "numpy>=1.24",
+    "rich>=13.0",
+    "soundfile>=0.12",
+]
+
+[project.scripts]
+snapcut = "snapcut.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["snapcut*"]
